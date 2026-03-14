@@ -1,167 +1,123 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل حضور العمال</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      margin: 0;
-      padding: 20px;
-    }
-    .box {
-      max-width: 520px;
-      margin: 40px auto;
-      background: white;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    h1 {
-      margin-top: 0;
-      font-size: 26px;
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 14px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-    .btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 20px;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      font-weight: bold;
-    }
-    .in-btn {
-      background: #16a34a;
-      color: white;
-    }
-    .out-btn {
-      background: #dc2626;
-      color: white;
-    }
-    .msg {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #eef2ff;
-      color: #1e3a8a;
-      min-height: 24px;
-      white-space: pre-line;
-    }
-    .small {
-      font-size: 13px;
-      color: #666;
-      margin-top: 10px;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>تسجيل حضور العمال</title>
+<style>
+body{
+font-family:Arial;
+background:#f2f2f2;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.box{
+background:white;
+padding:30px;
+border-radius:10px;
+width:320px;
+text-align:center;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:8px 0;
+}
+
+button{
+padding:10px;
+width:48%;
+border:none;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.in{
+background:#2ecc71;
+}
+
+.out{
+background:#e74c3c;
+}
+</style>
 </head>
+
 <body>
-  <div class="box">
-    <h1>تسجيل حضور العمال</h1>
 
-    <label for="workerId">رقم العامل</label>
-    <input id="workerId" type="text" placeholder="مثال: W001" />
+<div class="box">
 
-    <label for="workerName">اسم العامل</label>
-    <input id="workerName" type="text" placeholder="مثال: أحمد" />
+<h2>تسجيل حضور العمال</h2>
 
-    <label for="site">الورشة</label>
-    <select id="site">
-      <option value="">اختر الورشة</option>
-      <option value="S001|ورشة 1">ورشة 1</option>
-      <option value="S002|ورشة 2">ورشة 2</option>
-      <option value="S003|ورشة 3">ورشة 3</option>
-    </select>
+<input id="workerId" placeholder="رقم العامل">
 
-    <div class="btns">
-      <button class="in-btn" onclick="sendAttendance('IN')">تسجيل دخول</button>
-      <button class="out-btn" onclick="sendAttendance('OUT')">تسجيل خروج</button>
-    </div>
+<input id="workerName" placeholder="اسم العامل">
 
-    <div class="msg" id="msg">بانتظار الإجراء...</div>
-    <div class="small">اسمح للموقع بالوصول إلى الموقع الجغرافي عند الطلب</div>
-  </div>
+<select id="site">
+<option>برج عابدين</option>
+<option>برج ليوان 2</option>
+<option>فيلة كريم عين يبرود</option>
+<option>فيلة نعيم عين يبرود</option>
+<option>فيلة الجعبة المزرعة</option>
+  <option>فيلة جرار سردا</option>
+</select>
 
-  <script>
-    const WEBHOOK_URL = https://mbarakat1990.app.n8n.cloud/webhook-test/Attendance;
+<div style="display:flex;justify-content:space-between;margin-top:10px">
 
-    async function sendAttendance(action) {
-      const msg = document.getElementById("msg");
-      const workerId = document.getElementById("workerId").value.trim();
-      const workerName = document.getElementById("workerName").value.trim();
-      const siteValue = document.getElementById("site").value;
+<button class="in" onclick="sendAttendance('checkin')">
+تسجيل دخول
+</button>
 
-      if (!workerId || !workerName || !siteValue) {
-        msg.textContent = "يرجى تعبئة رقم العامل واسم العامل واختيار الورشة.";
-        return;
-      }
+<button class="out" onclick="sendAttendance('checkout')">
+تسجيل خروج
+</button>
 
-      if (!navigator.geolocation) {
-        msg.textContent = "هذا الهاتف أو المتصفح لا يدعم تحديد الموقع.";
-        return;
-      }
+</div>
 
-      const [siteId, siteName] = siteValue.split("|");
-      msg.textContent = "جاري تحديد الموقع وإرسال البيانات...";
+<p id="msg"></p>
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const payload = {
-            workerId,
-            workerName,
-            siteId,
-            siteName,
-            action,
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            deviceTime: new Date().toISOString()
-          };
+</div>
 
-          try {
-            const res = await fetch(WEBHOOK_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(payload)
-            });
+<script>
 
-            const text = await res.text();
-            msg.textContent = "تم إرسال البيانات بنجاح.\n" + text;
-          } catch (error) {
-            msg.textContent = "حدث خطأ أثناء الإرسال:\n" + error.message;
-          }
-        },
-        (error) => {
-          msg.textContent = "تعذر الحصول على الموقع:\n" + error.message;
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
-      );
-    }
-  </script>
+const WEBHOOK_URL="https://mbarakat1990.app.n8n.cloud/webhook-test/attendance";
+
+function sendAttendance(action){
+
+const workerId=document.getElementById("workerId").value;
+const workerName=document.getElementById("workerName").value;
+const site=document.getElementById("site").value;
+
+document.getElementById("msg").innerText="جار الإرسال...";
+
+fetch(WEBHOOK_URL,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+workerId,
+workerName,
+site,
+action,
+time:new Date().toISOString()
+})
+})
+.then(r=>r.text())
+.then(()=>{
+document.getElementById("msg").innerText="تم التسجيل بنجاح";
+})
+.catch(()=>{
+document.getElementById("msg").innerText="فشل الاتصال";
+});
+
+}
+
+</script>
+
 </body>
 </html>
